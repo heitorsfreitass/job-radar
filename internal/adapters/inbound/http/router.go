@@ -4,30 +4,39 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/heitorsfreitass/job-radar/internal/domain"
 )
 
-// NewRouter builds the HTTP router. Job search/filter/pagination routes
-// are added once the corresponding application use cases exist (stage 3).
-func NewRouter() http.Handler {
+// defaultRateLimitPerMinute caps each client IP to 60 requests/minute
+// against the API, backed by Redis via RateLimit.
+const defaultRateLimitPerMinute = 60
+
+// Handler holds the dependencies shared by the HTTP handlers.
+type Handler struct {
+	repo domain.JobRepository
+}
+
+// NewRouter builds the HTTP router: job search/filter/pagination routes,
+// backed by repo, rate-limited per client IP via cache.
+func NewRouter(repo domain.JobRepository, cache domain.Cache) http.Handler {
+	h := &Handler{repo: repo}
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(RateLimit(cache, defaultRateLimitPerMinute))
 
 	r.Get("/healthz", handleHealthz)
+	r.Get("/jobs", h.handleSearchJobs)
+	r.Get("/jobs/{id}", h.handleGetJob)
 
 	return r
-}
-
-func handleHealthz(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }

@@ -1,0 +1,98 @@
+openapi: 3.0.3
+info:
+  title: job-radar API
+  version: "1.0"
+  description: >
+    Aggregated, normalized job postings from Arbeitnow and Remotive,
+    focused on the European market.
+servers:
+  - url: http://localhost:8080
+paths:
+  /healthz:
+    get:
+      summary: Liveness check
+      responses:
+        "200":
+          description: OK
+  /jobs:
+    get:
+      summary: Search jobs
+      parameters:
+        - name: country
+          in: query
+          schema: { type: string }
+        - name: workplace
+          in: query
+          schema: { type: string, enum: [remote, onsite, hybrid, unknown] }
+        - name: seniority
+          in: query
+          schema: { type: string, enum: [junior, mid, senior, lead, unknown] }
+        - name: tag
+          in: query
+          schema: { type: string }
+        - name: keyword
+          in: query
+          description: Matched against title and description (case-insensitive substring)
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: A page of jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Job" }
+                  meta:
+                    type: object
+                    properties:
+                      page: { type: integer }
+                      page_size: { type: integer }
+                      total: { type: integer }
+        "429":
+          description: Rate limit exceeded
+  /jobs/{id}:
+    get:
+      summary: Get a job by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: The job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "404":
+          description: Job not found
+components:
+  schemas:
+    Job:
+      type: object
+      properties:
+        ID: { type: string, format: uuid }
+        Title: { type: string }
+        CompanyName: { type: string }
+        Description: { type: string }
+        URL: { type: string }
+        Source: { type: string, enum: [arbeitnow, remotive] }
+        SourceJobID: { type: string }
+        Country: { type: string }
+        Workplace: { type: string, enum: [remote, onsite, hybrid, unknown] }
+        Employment: { type: string, enum: [full_time, part_time, contract, internship, unknown] }
+        Seniority: { type: string, enum: [junior, mid, senior, lead, unknown] }
+        Tags:
+          type: array
+          items: { type: string }
+        PublishedAt: { type: string, format: date-time }
+        IngestedAt: { type: string, format: date-time }

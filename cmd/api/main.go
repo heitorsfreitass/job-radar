@@ -9,6 +9,7 @@ import (
 
 	httpadapter "github.com/heitorsfreitass/job-radar/internal/adapters/inbound/http"
 	"github.com/heitorsfreitass/job-radar/internal/adapters/outbound/postgres"
+	rediscache "github.com/heitorsfreitass/job-radar/internal/adapters/outbound/redis"
 	"github.com/heitorsfreitass/job-radar/internal/config"
 )
 
@@ -27,7 +28,14 @@ func main() {
 	}
 	defer pool.Close()
 
-	router := httpadapter.NewRouter()
+	cache, err := rediscache.New(ctx, cfg.RedisAddr, cfg.RedisDB)
+	if err != nil {
+		log.Fatalf("connect to redis: %v", err)
+	}
+	defer cache.Close()
+
+	repo := postgres.NewJobsRepository(pool)
+	router := httpadapter.NewRouter(repo, cache)
 
 	addr := ":" + cfg.APIPort
 	log.Printf("api listening on %s", addr)

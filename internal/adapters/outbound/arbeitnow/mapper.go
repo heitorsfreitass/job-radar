@@ -1,25 +1,65 @@
 package arbeitnow
 
 import (
+	"bytes"
+	"encoding/json"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/heitorsfreitass/job-radar/internal/domain"
 )
 
+// stringList unmarshals a JSON array of strings. Arbeitnow's API also
+// serializes `tags`/`job_types` as a JSON *object* (e.g.
+// `{"1":"professional / experienced"}`) for at least some listings — a
+// well-known PHP artifact where an associative array whose keys aren't a
+// contiguous 0-based sequence encodes as an object instead of an array.
+// When that shape is seen, its values are used as the list instead of
+// being dropped.
+type stringList []string
+
+func (s *stringList) UnmarshalJSON(data []byte) error {
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) > 0 && trimmed[0] == '{' {
+		var m map[string]string
+		if err := json.Unmarshal(data, &m); err != nil {
+			return err
+		}
+		keys := make([]string, 0, len(m))
+		for k := range m {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		values := make([]string, 0, len(m))
+		for _, k := range keys {
+			values = append(values, m[k])
+		}
+		*s = values
+		return nil
+	}
+
+	var v []string
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*s = v
+	return nil
+}
+
 // rawJob mirrors the shape of a single entry in Arbeitnow's
 // `job-board-api` `data` array.
 type rawJob struct {
-	Slug        string   `json:"slug"`
-	CompanyName string   `json:"company_name"`
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	Remote      bool     `json:"remote"`
-	URL         string   `json:"url"`
-	Tags        []string `json:"tags"`
-	JobTypes    []string `json:"job_types"`
-	Location    string   `json:"location"`
-	CreatedAt   int64    `json:"created_at"` // unix seconds
+	Slug        string     `json:"slug"`
+	CompanyName string     `json:"company_name"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Remote      bool       `json:"remote"`
+	URL         string     `json:"url"`
+	Tags        stringList `json:"tags"`
+	JobTypes    stringList `json:"job_types"`
+	Location    string     `json:"location"`
+	CreatedAt   int64      `json:"created_at"` // unix seconds
 }
 
 func (r rawJob) toDomain() *domain.Job {
@@ -57,9 +97,9 @@ func workplaceFrom(r rawJob) domain.WorkplaceType {
 }
 
 var employmentByArbeitnowType = map[string]domain.EmploymentType{
-	"full-time": domain.EmploymentTypeFullTime,
-	"part-time": domain.EmploymentTypePartTime,
-	"contract":  domain.EmploymentTypeContract,
+	"full-time":  domain.EmploymentTypeFullTime,
+	"part-time":  domain.EmploymentTypePartTime,
+	"contract":   domain.EmploymentTypeContract,
 	"internship": domain.EmploymentTypeInternship,
 	"freelance":  domain.EmploymentTypeContract,
 }

@@ -117,8 +117,16 @@ make test
 
 ## API
 
-Once the ingestion and API stages are implemented, endpoints and their
-OpenAPI spec will be documented here and under `docs/openapi.yaml`.
+Full spec: [`docs/openapi.yaml`](docs/openapi.yaml). Summary:
+
+| Endpoint | Description |
+|----------|--------------|
+| `GET /healthz` | Liveness check |
+| `GET /jobs` | Search jobs. Query params: `country`, `workplace`, `seniority`, `tag`, `keyword`, `page`, `page_size` (max 100) |
+| `GET /jobs/{id}` | Get a single job by id |
+
+All endpoints are rate-limited to 60 requests/minute per client IP
+(Redis-backed, returns `429` with a `Retry-After` header when exceeded).
 
 ## Project status
 
@@ -126,13 +134,14 @@ Built incrementally, in public stages:
 
 - [x] Stage 1 — project skeleton, domain model, config, database
       connection, docker-compose, initial docs.
-- [ ] Stage 2 — ingestion worker (Arbeitnow + Remotive clients,
+- [x] Stage 2 — ingestion worker (Arbeitnow + Remotive clients,
       normalization, deduplication, scheduler with the Remotive rate
       limit).
-- [ ] Stage 3 — REST API (filters, pagination, get-by-id, Redis rate
+- [x] Stage 3 — REST API (filters, pagination, get-by-id, Redis rate
       limiting, OpenAPI/Swagger docs).
-- [ ] Stage 4 — automated tests (unit, integration, source normalizer)
-      and CI.
+- [ ] Stage 4 — integration tests against a live Postgres/Redis, and CI.
+      (Unit tests for mappers, use cases, and the scheduler's rate cap
+      already exist and run via `make test`.)
 
 **Out of scope for now:** frontend, user authentication, production
 deployment, additional job sources beyond Arbeitnow and Remotive.
