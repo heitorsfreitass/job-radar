@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"github.com/heitorsfreitass/job-radar/internal/domain"
 )
@@ -22,8 +23,9 @@ type Handler struct {
 }
 
 // NewRouter builds the HTTP router: job search/filter/pagination routes,
-// backed by repo, rate-limited per client IP via cache.
-func NewRouter(repo domain.JobRepository, cache domain.Cache) http.Handler {
+// backed by repo, rate-limited per client IP via cache. frontendOrigin is
+// the only origin allowed to call the API cross-origin (see internal/config).
+func NewRouter(repo domain.JobRepository, cache domain.Cache, frontendOrigin string) http.Handler {
 	h := &Handler{repo: repo}
 
 	r := chi.NewRouter()
@@ -32,6 +34,10 @@ func NewRouter(repo domain.JobRepository, cache domain.Cache) http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{frontendOrigin},
+		AllowedMethods: []string{http.MethodGet},
+	}))
 	r.Use(RateLimit(cache, defaultRateLimitPerMinute))
 
 	r.Get("/healthz", handleHealthz)

@@ -37,6 +37,7 @@ services:
       DATABASE_URL: postgres://job_radar:job_radar@postgres:5432/job_radar?sslmode=disable
       REDIS_ADDR: redis:6379
       API_PORT: "8080"
+      FRONTEND_ORIGIN: "http://localhost:5173"
     ports:
       - "8080:8080"
     depends_on:

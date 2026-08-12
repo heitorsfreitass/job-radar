@@ -29,6 +29,9 @@ The project follows a hexagonal (ports & adapters) architecture:
   enforcing per-source request limits.
 - **`cmd/api`** and **`cmd/worker`** — the two binaries: the HTTP API and
   the background ingestion worker.
+- **`frontend`** — a React + TypeScript SPA (Vite) that consumes the REST
+  API: search/filter/pagination and a job detail view. Talks to the API
+  directly over HTTP; not part of the Go module.
 
 This separation keeps the domain testable in isolation and makes each
 upstream source or storage backend swappable without touching business
@@ -89,7 +92,7 @@ afterthought:
 
 ## Getting started
 
-Requirements: Go 1.26+, Docker.
+Requirements: Go 1.26+, Docker, Node 20+.
 
 ```bash
 cp .env.example .env
@@ -109,10 +112,23 @@ go run ./cmd/api      # REST API, defaults to :8080
 go run ./cmd/worker    # ingestion worker
 ```
 
+Run the frontend (expects the API at `http://localhost:8080`; set
+`VITE_API_URL` to override):
+
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+```
+
+The API only accepts cross-origin requests from `FRONTEND_ORIGIN`
+(defaults to `http://localhost:5173`, see `.env.example`).
+
 Run tests:
 
 ```bash
-make test
+make test               # Go unit tests
+cd frontend && npm run lint
 ```
 
 ## API
@@ -139,12 +155,14 @@ Built incrementally, in public stages:
       limit).
 - [x] Stage 3 — REST API (filters, pagination, get-by-id, Redis rate
       limiting, OpenAPI/Swagger docs).
-- [ ] Stage 4 — integration tests against a live Postgres/Redis, and CI.
+- [x] Stage 4a — frontend: React + TypeScript SPA (search, filters,
+      pagination, job detail), CORS-gated to `FRONTEND_ORIGIN`.
+- [ ] Stage 4b — integration tests against a live Postgres/Redis, and CI.
       (Unit tests for mappers, use cases, and the scheduler's rate cap
       already exist and run via `make test`.)
 
-**Out of scope for now:** frontend, user authentication, production
-deployment, additional job sources beyond Arbeitnow and Remotive.
+**Out of scope for now:** user authentication, production deployment,
+additional job sources beyond Arbeitnow and Remotive.
 
 ## License
 

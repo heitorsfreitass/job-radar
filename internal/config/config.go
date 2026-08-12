@@ -14,6 +14,11 @@ type Config struct {
 
 	APIPort string
 
+	// FrontendOrigin is the origin allowed to call the API cross-origin
+	// (the React dev server by default; set to the deployed frontend's
+	// origin in production).
+	FrontendOrigin string
+
 	// RemotiveMaxRequestsPerDay caps how many calls the worker is allowed
 	// to make to the Remotive API in a 24h window. Remotive's terms of
 	// use ask consumers to stay well below their published limits; this
@@ -26,6 +31,7 @@ func Load() (Config, error) {
 		DatabaseURL:               getEnv("DATABASE_URL", "postgres://job_radar:job_radar@localhost:5432/job_radar?sslmode=disable"),
 		RedisAddr:                 getEnv("REDIS_ADDR", "localhost:6379"),
 		APIPort:                   getEnv("API_PORT", "8080"),
+		FrontendOrigin:            getEnv("FRONTEND_ORIGIN", "http://localhost:5173"),
 		RemotiveMaxRequestsPerDay: 4,
 	}
 

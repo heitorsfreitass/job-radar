@@ -35,7 +35,7 @@ func main() {
 	defer cache.Close()
 
 	repo := postgres.NewJobsRepository(pool)
-	router := httpadapter.NewRouter(repo, cache)
+	router := httpadapter.NewRouter(repo, cache, cfg.FrontendOrigin)
 
 	addr := ":" + cfg.APIPort
 	log.Printf("api listening on %s", addr)
