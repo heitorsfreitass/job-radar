@@ -55,17 +55,10 @@
 }
 
 .job-card {
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
+  position: relative;
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 16px;
   background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   transition: border-color 0.15s;
 }
 
@@ -73,11 +66,63 @@
   border-color: var(--accent-border);
 }
 
+.job-card-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  z-index: 1;
+}
+
+.icon-btn {
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  border-color: var(--border);
+  color: var(--text-h);
+}
+
+.icon-btn-active {
+  color: #f5a623;
+}
+
+.job-card-main {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .job-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  padding-right: 60px;
+}
+
+.job-card-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .job-card-header h3 {
@@ -113,6 +158,61 @@
   background: var(--accent-bg);
   color: var(--accent);
   white-space: nowrap;
+}
+
+/* Remote jobs get their own color so they're spottable at a glance in a
+   list dominated by onsite postings. */
+.badge-remote {
+  background: rgba(45, 212, 145, 0.15);
+  color: #2dd491;
+}
+
+.badge-new {
+  background: rgba(245, 166, 35, 0.15);
+  color: #f5a623;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.view-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.view-tabs button {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 4px;
+  margin-right: 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.view-tabs button.active {
+  color: var(--text-h);
+  border-bottom-color: var(--accent);
+}
+
+.hidden-note {
+  font-size: 13px;
+  color: var(--text);
+  margin: -8px 0 16px;
+}
+
+.link-btn {
+  font: inherit;
+  font-size: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .pagination {

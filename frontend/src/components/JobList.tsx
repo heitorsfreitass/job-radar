@@ -5,10 +5,13 @@ interface Props {
   jobs: Job[]
   loading: boolean
   error: string | null
+  savedIds: Set<string>
   onSelect: (job: Job) => void
+  onToggleSave: (job: Job) => void
+  onHide: (id: string) => void
 }
 
-export default function JobList({ jobs, loading, error, onSelect }: Props) {
+export default function JobList({ jobs, loading, error, savedIds, onSelect, onToggleSave, onHide }: Props) {
   if (error) {
     return <p className="state-message state-error">Failed to load jobs: {error}</p>
   }
@@ -22,7 +25,14 @@ export default function JobList({ jobs, loading, error, onSelect }: Props) {
   return (
     <div className="job-list">
       {jobs.map((job) => (
-        <JobCard key={job.ID} job={job} onSelect={onSelect} />
+        <JobCard
+          key={job.ID}
+          job={job}
+          isSaved={savedIds.has(job.ID)}
+          onSelect={onSelect}
+          onToggleSave={onToggleSave}
+          onHide={onHide}
+        />
       ))}
     </div>
   )
