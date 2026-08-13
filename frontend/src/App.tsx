@@ -131,8 +131,8 @@ export default function App() {
       <header className="app-header">
         <div className="app-header-top">
           <div>
-            <h1>job-radar</h1>
-            <p>European job postings, aggregated from Arbeitnow and Remotive.</p>
+            <h1>Job-Radar</h1>
+            <p>European job postings, aggregated from Arbeitnow and Remotive to help you.</p>
           </div>
           {auth ? (
             <div className="auth-bar">

@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,24 +16,24 @@ type contextKey string
 
 const userIDContextKey contextKey = "userID"
 
-func issueToken(secret []byte, userID string) (string, error) {
+func issueToken(secret []byte, userID int64) (string, error) {
 	claims := jwt.RegisteredClaims{
-		Subject:   userID,
+		Subject:   strconv.FormatInt(userID, 10),
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(secret)
 }
 
-func parseToken(secret []byte, tokenString string) (userID string, err error) {
+func parseToken(secret []byte, tokenString string) (userID int64, err error) {
 	claims := jwt.RegisteredClaims{}
 	_, err = jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (any, error) {
 		return secret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	return claims.Subject, nil
+	return strconv.ParseInt(claims.Subject, 10, 64)
 }
 
 // RequireAuth builds middleware that rejects requests without a valid
@@ -60,7 +61,7 @@ func RequireAuth(secret []byte) func(http.Handler) http.Handler {
 	}
 }
 
-func userIDFromContext(ctx context.Context) string {
-	id, _ := ctx.Value(userIDContextKey).(string)
+func userIDFromContext(ctx context.Context) int64 {
+	id, _ := ctx.Value(userIDContextKey).(int64)
 	return id
 }

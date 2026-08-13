@@ -54,11 +54,11 @@ func Login(ctx context.Context, repo domain.UserRepository, email, password stri
 	return user, nil
 }
 
-func GetPreferences(ctx context.Context, repo domain.UserRepository, userID string) (domain.Preferences, error) {
+func GetPreferences(ctx context.Context, repo domain.UserRepository, userID int64) (domain.Preferences, error) {
 	return repo.GetPreferences(ctx, userID)
 }
 
-func SavePreferences(ctx context.Context, repo domain.UserRepository, userID string, prefs domain.Preferences) error {
+func SavePreferences(ctx context.Context, repo domain.UserRepository, userID int64, prefs domain.Preferences) error {
 	return repo.SavePreferences(ctx, userID, prefs)
 }
 

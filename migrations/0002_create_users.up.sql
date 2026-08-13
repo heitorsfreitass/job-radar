@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id              BIGSERIAL PRIMARY KEY,
     email           TEXT NOT NULL,
     password_hash   TEXT NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- One-to-one: a user's default search area. Applied by the frontend as
 -- the initial filters when they log in.
 CREATE TABLE IF NOT EXISTS user_preferences (
-    user_id         UUID PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
+    user_id         BIGINT PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
     country         TEXT NOT NULL DEFAULT '',
     workplace       TEXT NOT NULL DEFAULT '',
     seniority       TEXT NOT NULL DEFAULT '',

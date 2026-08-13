@@ -12,18 +12,20 @@ import (
 
 type fakeUserRepo struct {
 	byEmail map[string]*domain.User
-	prefs   map[string]domain.Preferences
+	prefs   map[int64]domain.Preferences
+	nextID  int64
 }
 
 func newFakeUserRepo() *fakeUserRepo {
-	return &fakeUserRepo{byEmail: map[string]*domain.User{}, prefs: map[string]domain.Preferences{}}
+	return &fakeUserRepo{byEmail: map[string]*domain.User{}, prefs: map[int64]domain.Preferences{}}
 }
 
 func (f *fakeUserRepo) Create(ctx context.Context, email, passwordHash string) (*domain.User, error) {
 	if _, exists := f.byEmail[email]; exists {
 		return nil, domain.ErrEmailTaken
 	}
-	user := &domain.User{ID: email, Email: email, PasswordHash: passwordHash}
+	f.nextID++
+	user := &domain.User{ID: f.nextID, Email: email, PasswordHash: passwordHash}
 	f.byEmail[email] = user
 	return user, nil
 }
@@ -32,7 +34,7 @@ func (f *fakeUserRepo) GetByEmail(ctx context.Context, email string) (*domain.Us
 	return f.byEmail[email], nil
 }
 
-func (f *fakeUserRepo) GetByID(ctx context.Context, id string) (*domain.User, error) {
+func (f *fakeUserRepo) GetByID(ctx context.Context, id int64) (*domain.User, error) {
 	for _, u := range f.byEmail {
 		if u.ID == id {
 			return u, nil
@@ -41,11 +43,11 @@ func (f *fakeUserRepo) GetByID(ctx context.Context, id string) (*domain.User, er
 	return nil, nil
 }
 
-func (f *fakeUserRepo) GetPreferences(ctx context.Context, userID string) (domain.Preferences, error) {
+func (f *fakeUserRepo) GetPreferences(ctx context.Context, userID int64) (domain.Preferences, error) {
 	return f.prefs[userID], nil
 }
 
-func (f *fakeUserRepo) SavePreferences(ctx context.Context, userID string, prefs domain.Preferences) error {
+func (f *fakeUserRepo) SavePreferences(ctx context.Context, userID int64, prefs domain.Preferences) error {
 	f.prefs[userID] = prefs
 	return nil
 }
@@ -117,10 +119,10 @@ func TestPreferences_SaveAndGet(t *testing.T) {
 	repo := newFakeUserRepo()
 	prefs := domain.Preferences{Country: "Germany", Workplace: domain.WorkplaceRemote, Seniority: domain.SenioritySenior}
 
-	if err := SavePreferences(context.Background(), repo, "user-1", prefs); err != nil {
+	if err := SavePreferences(context.Background(), repo, 1, prefs); err != nil {
 		t.Fatalf("SavePreferences() error = %v", err)
 	}
-	got, err := GetPreferences(context.Background(), repo, "user-1")
+	got, err := GetPreferences(context.Background(), repo, 1)
 	if err != nil {
 		t.Fatalf("GetPreferences() error = %v", err)
 	}

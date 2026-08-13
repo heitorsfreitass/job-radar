@@ -12,7 +12,7 @@ var ErrEmailTaken = errors.New("email already registered")
 // User is an account holder. PasswordHash is a bcrypt hash, never the
 // plaintext password.
 type User struct {
-	ID           string
+	ID           int64
 	Email        string
 	PasswordHash string
 	CreatedAt    time.Time

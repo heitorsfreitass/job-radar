@@ -27,7 +27,7 @@ func TestUsersCreate_InsertsAndReturnsUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
-	if user.ID == "" {
+	if user.ID == 0 {
 		t.Error("ID not populated")
 	}
 	if user.Email != "user@example.com" {

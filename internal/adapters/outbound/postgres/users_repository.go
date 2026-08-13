@@ -49,7 +49,7 @@ func (r *UsersRepository) GetByEmail(ctx context.Context, email string) (*domain
 	return user, nil
 }
 
-func (r *UsersRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
+func (r *UsersRepository) GetByID(ctx context.Context, id int64) (*domain.User, error) {
 	const q = `SELECT id, email, password_hash, created_at FROM users WHERE id = $1`
 	user, err := scanUser(r.pool.QueryRow(ctx, q, id))
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -61,7 +61,7 @@ func (r *UsersRepository) GetByID(ctx context.Context, id string) (*domain.User,
 	return user, nil
 }
 
-func (r *UsersRepository) GetPreferences(ctx context.Context, userID string) (domain.Preferences, error) {
+func (r *UsersRepository) GetPreferences(ctx context.Context, userID int64) (domain.Preferences, error) {
 	const q = `SELECT country, workplace, seniority, tag, keyword FROM user_preferences WHERE user_id = $1`
 
 	var p domain.Preferences
@@ -75,7 +75,7 @@ func (r *UsersRepository) GetPreferences(ctx context.Context, userID string) (do
 	return p, nil
 }
 
-func (r *UsersRepository) SavePreferences(ctx context.Context, userID string, prefs domain.Preferences) error {
+func (r *UsersRepository) SavePreferences(ctx context.Context, userID int64, prefs domain.Preferences) error {
 	const q = `
 		INSERT INTO user_preferences (user_id, country, workplace, seniority, tag, keyword, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, now())

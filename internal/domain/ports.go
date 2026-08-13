@@ -38,9 +38,9 @@ type UserRepository interface {
 	// errors.Is(err, ErrEmailTaken) when the email is already registered.
 	Create(ctx context.Context, email, passwordHash string) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
-	GetByID(ctx context.Context, id string) (*User, error)
-	GetPreferences(ctx context.Context, userID string) (Preferences, error)
-	SavePreferences(ctx context.Context, userID string, prefs Preferences) error
+	GetByID(ctx context.Context, id int64) (*User, error)
+	GetPreferences(ctx context.Context, userID int64) (Preferences, error)
+	SavePreferences(ctx context.Context, userID int64, prefs Preferences) error
 }
 
 // Cache is the outbound port used for response caching and distributed
