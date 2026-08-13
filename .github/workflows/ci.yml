@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache-dependency-path: go.sum
+
+      - name: gofmt
+        run: |
+          fmt_out="$(gofmt -l .)"
+          if [ -n "$fmt_out" ]; then
+            echo "$fmt_out"
+            echo "Run 'gofmt -w .' locally to fix formatting."
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: build
+        run: go build ./...
+
+      - name: unit tests
+        run: go test ./... -race -cover
+
+      # Docker is preinstalled on GitHub-hosted ubuntu-latest runners, so
+      # testcontainers-go can spin up real Postgres/Redis here the same
+      # way it does locally via `make test-integration`.
+      - name: integration tests
+        run: go test -tags=integration ./... -race -cover
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

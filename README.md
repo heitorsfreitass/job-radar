@@ -128,6 +128,7 @@ Run tests:
 
 ```bash
 make test               # Go unit tests
+make test-integration   # + real Postgres/Redis via testcontainers-go (needs Docker)
 cd frontend && npm run lint
 ```
 
@@ -157,9 +158,12 @@ Built incrementally, in public stages:
       limiting, OpenAPI/Swagger docs).
 - [x] Stage 4a — frontend: React + TypeScript SPA (search, filters,
       pagination, job detail), CORS-gated to `FRONTEND_ORIGIN`.
-- [ ] Stage 4b — integration tests against a live Postgres/Redis, and CI.
-      (Unit tests for mappers, use cases, and the scheduler's rate cap
-      already exist and run via `make test`.)
+- [x] Stage 4b — integration tests (`make test-integration`) against
+      real Postgres/Redis via [testcontainers-go](https://golang.testcontainers.org/),
+      covering the repository's dual dedup paths, filtered search, and
+      the cache's rate-limit counter. CI (GitHub Actions) runs gofmt,
+      vet, build, unit tests, integration tests, and the frontend
+      lint/build on every push and PR.
 
 **Out of scope for now:** user authentication, production deployment,
 additional job sources beyond Arbeitnow and Remotive.

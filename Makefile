@@ -1,4 +1,4 @@
-.PHONY: up down build test lint migrate-up migrate-down
+.PHONY: up down build test test-integration lint migrate-up migrate-down
 
 up:
 	docker compose -f deployments/docker-compose.yml up --build
@@ -11,6 +11,11 @@ build:
 
 test:
 	go test ./... -race -cover
+
+# Requires Docker: spins up real Postgres/Redis containers via
+# testcontainers-go for the duration of the run.
+test-integration:
+	go test -tags=integration ./... -race -cover
 
 lint:
 	gofmt -l .
