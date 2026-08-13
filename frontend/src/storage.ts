@@ -48,4 +48,21 @@ export function toggleSaved(current: Record<string, Job>, job: Job): Record<stri
   return next
 }
 
+export interface StoredAuth {
+  token: string
+  email: string
+}
+
+export function loadAuth(): StoredAuth | null {
+  return loadJSON<StoredAuth | null>('auth', null)
+}
+
+export function saveAuth(auth: StoredAuth): void {
+  saveJSON('auth', auth)
+}
+
+export function clearAuth(): void {
+  localStorage.removeItem(PREFIX + 'auth')
+}
+
 export { loadJSON, saveJSON }

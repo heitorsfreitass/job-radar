@@ -34,8 +34,13 @@ func main() {
 	}
 	defer cache.Close()
 
+	if cfg.JWTSecret == config.DevJWTSecret {
+		log.Println("WARNING: JWT_SECRET not set, using an insecure default. Set JWT_SECRET in production.")
+	}
+
 	repo := postgres.NewJobsRepository(pool)
-	router := httpadapter.NewRouter(repo, cache, cfg.FrontendOrigin)
+	users := postgres.NewUsersRepository(pool)
+	router := httpadapter.NewRouter(repo, users, cache, cfg.FrontendOrigin, []byte(cfg.JWTSecret))
 
 	addr := ":" + cfg.APIPort
 	log.Printf("api listening on %s", addr)

@@ -21,7 +21,7 @@ lint:
 	gofmt -l .
 	go vet ./...
 
-MIGRATE_DB_URL ?= postgres://job_radar:job_radar@localhost:5432/job_radar?sslmode=disable
+MIGRATE_DB_URL ?= postgres://job_radar:job_radar@localhost:5433/job_radar?sslmode=disable
 
 migrate-up:
 	migrate -path migrations -database "$(MIGRATE_DB_URL)" up

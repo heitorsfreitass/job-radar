@@ -41,3 +41,44 @@ export const EMPTY_FILTERS: Filters = {
   seniority: '',
   tag: '',
 }
+
+export interface AuthResponse {
+  token: string
+  email: string
+}
+
+// Matches the JSON shape of Go's domain.Preferences (capitalized field
+// names, no json tags) — distinct from the frontend's own lowercase
+// Filters shape.
+export interface PreferencesDTO {
+  Country: string
+  Workplace: string
+  Seniority: string
+  Tag: string
+  Keyword: string
+}
+
+export interface MeResponse {
+  email: string
+  preferences: PreferencesDTO
+}
+
+export function preferencesToFilters(p: PreferencesDTO): Filters {
+  return {
+    country: p.Country,
+    workplace: p.Workplace,
+    seniority: p.Seniority,
+    tag: p.Tag,
+    keyword: p.Keyword,
+  }
+}
+
+export function filtersToPreferences(f: Filters): PreferencesDTO {
+  return {
+    Country: f.country,
+    Workplace: f.workplace,
+    Seniority: f.seniority,
+    Tag: f.tag,
+    Keyword: f.keyword,
+  }
+}

@@ -141,9 +141,15 @@ Full spec: [`docs/openapi.yaml`](docs/openapi.yaml). Summary:
 | `GET /healthz` | Liveness check |
 | `GET /jobs` | Search jobs. Query params: `country`, `workplace`, `seniority`, `tag`, `keyword`, `page`, `page_size` (max 100) |
 | `GET /jobs/{id}` | Get a single job by id |
+| `POST /auth/register` | Create an account (`email`, `password`, min. 8 chars) |
+| `POST /auth/login` | Exchange credentials for a JWT (`Authorization: Bearer <token>`, 7-day expiry) |
+| `GET /me` | Requires auth. Current user's email + saved search preferences |
+| `PUT /me/preferences` | Requires auth. Save the caller's default search area (country, workplace, seniority, tag, keyword) — applied by the frontend as the initial filters on login |
 
 All endpoints are rate-limited to 60 requests/minute per client IP
 (Redis-backed, returns `429` with a `Retry-After` header when exceeded).
+Passwords are hashed with bcrypt; nothing is ever stored or logged in
+plaintext.
 
 ## Project status
 
@@ -164,9 +170,12 @@ Built incrementally, in public stages:
       the cache's rate-limit counter. CI (GitHub Actions) runs gofmt,
       vet, build, unit tests, integration tests, and the frontend
       lint/build on every push and PR.
+- [x] Stage 5 — accounts: register/login (JWT, bcrypt-hashed passwords),
+      each user's default search area saved server-side and applied on
+      login (`GET /me`, `PUT /me/preferences`).
 
-**Out of scope for now:** user authentication, production deployment,
-additional job sources beyond Arbeitnow and Remotive.
+**Out of scope for now:** production deployment, additional job sources
+beyond Arbeitnow and Remotive, password reset / email verification.
 
 ## License
 

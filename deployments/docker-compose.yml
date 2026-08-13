@@ -7,7 +7,10 @@ services:
       POSTGRES_PASSWORD: job_radar
       POSTGRES_DB: job_radar
     ports:
-      - "5432:5432"
+      # Published on 5433 on the host: 5432 is commonly already taken by
+      # a native/Homebrew Postgres install. Containers still talk to each
+      # other over the internal Docker network on 5432 regardless.
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -38,6 +41,7 @@ services:
       REDIS_ADDR: redis:6379
       API_PORT: "8080"
       FRONTEND_ORIGIN: "http://localhost:5173"
+      JWT_SECRET: ${JWT_SECRET:-dev-only-insecure-secret-change-me}
     ports:
       - "8080:8080"
     depends_on:

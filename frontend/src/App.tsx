@@ -1,23 +1,29 @@
 import { useEffect, useState } from 'react'
-import { searchJobs } from './api'
+import { getMe, savePreferences, searchJobs } from './api'
+import AuthModal from './components/AuthModal'
 import FilterBar from './components/FilterBar'
 import JobDetail from './components/JobDetail'
 import JobList from './components/JobList'
 import Pagination from './components/Pagination'
 import {
+  clearAuth,
+  loadAuth,
   loadHiddenIds,
   loadJSON,
   loadSavedJobs,
+  saveAuth,
   saveJSON,
   toggleHidden,
   toggleSaved,
+  type StoredAuth,
 } from './storage'
-import { EMPTY_FILTERS, type Filters, type Job } from './types'
+import { EMPTY_FILTERS, filtersToPreferences, preferencesToFilters, type AuthResponse, type Filters, type Job } from './types'
 import './App.css'
 
 const PAGE_SIZE = 20
 
 type View = 'all' | 'saved'
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 export default function App() {
   const [filters, setFilters] = useState<Filters>(() => loadJSON('filters', EMPTY_FILTERS))
@@ -30,6 +36,9 @@ export default function App() {
   const [view, setView] = useState<View>('all')
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(loadHiddenIds)
   const [savedJobs, setSavedJobs] = useState<Record<string, Job>>(loadSavedJobs)
+  const [auth, setAuth] = useState<StoredAuth | null>(loadAuth)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
   useEffect(() => {
     saveJSON('filters', filters)
@@ -65,8 +74,51 @@ export default function App() {
     }
   }, [filters, page, view])
 
+  // A stored token might have expired since the last visit; drop it
+  // quietly rather than showing a signed-in state that 401s on save.
+  useEffect(() => {
+    if (!auth) return
+    getMe(auth.token).catch(() => {
+      clearAuth()
+      setAuth(null)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleToggleSave = (job: Job) => setSavedJobs((current) => toggleSaved(current, job))
   const handleHide = (id: string) => setHiddenIds((current) => toggleHidden(current, id))
+
+  const handleAuthSuccess = (resp: AuthResponse) => {
+    const next: StoredAuth = { token: resp.token, email: resp.email }
+    saveAuth(next)
+    setAuth(next)
+    setShowAuthModal(false)
+
+    getMe(resp.token)
+      .then((me) => {
+        const prefFilters = preferencesToFilters(me.preferences)
+        if (Object.values(prefFilters).some((v) => v !== '')) {
+          setFilters(prefFilters)
+        }
+      })
+      .catch(() => {})
+  }
+
+  const handleLogout = () => {
+    clearAuth()
+    setAuth(null)
+  }
+
+  const handleSaveDefault = () => {
+    if (!auth) return
+    setSaveStatus('saving')
+    savePreferences(auth.token, filtersToPreferences(filters))
+      .then(() => {
+        setSaveStatus('saved')
+        setTimeout(() => setSaveStatus('idle'), 2000)
+      })
+      .catch(() => setSaveStatus('error'))
+  }
 
   const savedList = Object.values(savedJobs).sort(
     (a, b) => new Date(b.PublishedAt).getTime() - new Date(a.PublishedAt).getTime(),
@@ -77,8 +129,24 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>job-radar</h1>
-        <p>European job postings, aggregated from Arbeitnow and Remotive.</p>
+        <div className="app-header-top">
+          <div>
+            <h1>job-radar</h1>
+            <p>European job postings, aggregated from Arbeitnow and Remotive.</p>
+          </div>
+          {auth ? (
+            <div className="auth-bar">
+              <span className="auth-email">{auth.email}</span>
+              <button className="link-btn" onClick={handleLogout}>
+                Log out
+              </button>
+            </div>
+          ) : (
+            <button className="auth-cta" onClick={() => setShowAuthModal(true)}>
+              Log in / Sign up
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="view-tabs">
@@ -90,7 +158,16 @@ export default function App() {
         </button>
       </div>
 
-      {view === 'all' && <FilterBar filters={filters} onChange={setFilters} />}
+      {view === 'all' && (
+        <div className="filter-row">
+          <FilterBar filters={filters} onChange={setFilters} />
+          {auth && (
+            <button className="save-default-btn" onClick={handleSaveDefault} disabled={saveStatus === 'saving'}>
+              {saveStatus === 'saved' ? 'Saved ✓' : saveStatus === 'saving' ? 'Saving…' : 'Save as default'}
+            </button>
+          )}
+        </div>
+      )}
 
       {view === 'all' && hiddenOnPage > 0 && (
         <p className="hidden-note">
@@ -116,6 +193,7 @@ export default function App() {
       )}
 
       {selectedJob && <JobDetail job={selectedJob} onClose={() => setSelectedJob(null)} />}
+      {showAuthModal && <AuthModal onSuccess={handleAuthSuccess} onClose={() => setShowAuthModal(false)} />}
     </div>
   )
 }

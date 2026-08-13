@@ -31,6 +31,18 @@ type JobSource interface {
 	Fetch(ctx context.Context) ([]*Job, error)
 }
 
+// UserRepository is the outbound port for user accounts and their saved
+// search preferences. Implemented by internal/adapters/outbound/postgres.
+type UserRepository interface {
+	// Create inserts a new user. It returns an error satisfying
+	// errors.Is(err, ErrEmailTaken) when the email is already registered.
+	Create(ctx context.Context, email, passwordHash string) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	GetByID(ctx context.Context, id string) (*User, error)
+	GetPreferences(ctx context.Context, userID string) (Preferences, error)
+	SavePreferences(ctx context.Context, userID string, prefs Preferences) error
+}
+
 // Cache is the outbound port used for response caching and distributed
 // rate limiting, backed by Redis.
 type Cache interface {

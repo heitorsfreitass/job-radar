@@ -19,14 +19,17 @@ const defaultRateLimitPerMinute = 60
 
 // Handler holds the dependencies shared by the HTTP handlers.
 type Handler struct {
-	repo domain.JobRepository
+	repo      domain.JobRepository
+	users     domain.UserRepository
+	jwtSecret []byte
 }
 
 // NewRouter builds the HTTP router: job search/filter/pagination routes,
-// backed by repo, rate-limited per client IP via cache. frontendOrigin is
-// the only origin allowed to call the API cross-origin (see internal/config).
-func NewRouter(repo domain.JobRepository, cache domain.Cache, frontendOrigin string) http.Handler {
-	h := &Handler{repo: repo}
+// backed by repo; auth and preferences routes, backed by users. All
+// routes are rate-limited per client IP via cache. frontendOrigin is the
+// only origin allowed to call the API cross-origin (see internal/config).
+func NewRouter(repo domain.JobRepository, users domain.UserRepository, cache domain.Cache, frontendOrigin string, jwtSecret []byte) http.Handler {
+	h := &Handler{repo: repo, users: users, jwtSecret: jwtSecret}
 
 	r := chi.NewRouter()
 
@@ -36,13 +39,23 @@ func NewRouter(repo domain.JobRepository, cache domain.Cache, frontendOrigin str
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{frontendOrigin},
-		AllowedMethods: []string{http.MethodGet},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut},
+		AllowedHeaders: []string{"Content-Type", "Authorization"},
 	}))
 	r.Use(RateLimit(cache, defaultRateLimitPerMinute))
 
 	r.Get("/healthz", handleHealthz)
 	r.Get("/jobs", h.handleSearchJobs)
 	r.Get("/jobs/{id}", h.handleGetJob)
+
+	r.Post("/auth/register", h.handleRegister)
+	r.Post("/auth/login", h.handleLogin)
+
+	r.Group(func(r chi.Router) {
+		r.Use(RequireAuth(jwtSecret))
+		r.Get("/me", h.handleMe)
+		r.Put("/me/preferences", h.handleSavePreferences)
+	})
 
 	return r
 }

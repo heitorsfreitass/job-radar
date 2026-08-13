@@ -8,6 +8,14 @@
   margin-bottom: 24px;
 }
 
+.app-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .app-header h1 {
   margin: 0 0 4px;
   font-size: 32px;
@@ -15,6 +23,102 @@
 
 .app-header p {
   color: var(--text);
+}
+
+.auth-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  padding-top: 8px;
+}
+
+.auth-email {
+  color: var(--text-h);
+}
+
+.auth-cta {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 16px;
+  margin-top: 8px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filter-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.filter-row .filter-bar {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.save-default-btn {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.save-default-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.auth-modal {
+  max-width: 380px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.auth-form input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.auth-submit {
+  font: inherit;
+  padding: 10px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.auth-error {
+  margin: 0;
+  font-size: 13px;
 }
 
 .filter-bar {

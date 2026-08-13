@@ -19,6 +19,10 @@ type Config struct {
 	// origin in production).
 	FrontendOrigin string
 
+	// JWTSecret signs and verifies auth tokens. The default is only fit
+	// for local development; cmd/api warns loudly if it's still in use.
+	JWTSecret string
+
 	// RemotiveMaxRequestsPerDay caps how many calls the worker is allowed
 	// to make to the Remotive API in a 24h window. Remotive's terms of
 	// use ask consumers to stay well below their published limits; this
@@ -26,12 +30,19 @@ type Config struct {
 	RemotiveMaxRequestsPerDay int
 }
 
+// DevJWTSecret is the fallback used when JWT_SECRET is unset. It is not
+// a secret at all — it's committed here in plain text — so cmd/api warns
+// loudly if it's still in use, and production deployments must set
+// JWT_SECRET explicitly.
+const DevJWTSecret = "dev-only-insecure-secret-change-me" //nolint:gosec // documented dev-only placeholder, not a real credential
+
 func Load() (Config, error) {
 	cfg := Config{
-		DatabaseURL:               getEnv("DATABASE_URL", "postgres://job_radar:job_radar@localhost:5432/job_radar?sslmode=disable"),
+		DatabaseURL:               getEnv("DATABASE_URL", "postgres://job_radar:job_radar@localhost:5433/job_radar?sslmode=disable"),
 		RedisAddr:                 getEnv("REDIS_ADDR", "localhost:6379"),
 		APIPort:                   getEnv("API_PORT", "8080"),
 		FrontendOrigin:            getEnv("FRONTEND_ORIGIN", "http://localhost:5173"),
+		JWTSecret:                 getEnv("JWT_SECRET", DevJWTSecret),
 		RemotiveMaxRequestsPerDay: 4,
 	}
 

@@ -23,7 +23,10 @@ func TestMain(m *testing.M) {
 		tcpostgres.WithDatabase("job_radar"),
 		tcpostgres.WithUsername("job_radar"),
 		tcpostgres.WithPassword("job_radar"),
-		tcpostgres.WithInitScripts("../../../../migrations/0001_create_jobs.up.sql"),
+		tcpostgres.WithInitScripts(
+			"../../../../migrations/0001_create_jobs.up.sql",
+			"../../../../migrations/0002_create_users.up.sql",
+		),
 		tcpostgres.BasicWaitStrategies(),
 	)
 	if err != nil {
